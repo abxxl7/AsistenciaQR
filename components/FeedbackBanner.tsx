@@ -1,30 +1,24 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
-import { CheckCircle2, ScanLine, TriangleAlert } from "lucide-react-native";
+import { CheckCircle2, XCircle } from "lucide-react-native";
 import { colors, radius, spacing, typography } from "@/lib/theme";
-import type { ScanFeedback } from "@/lib/types";
+import type { ScanOutcome } from "@/lib/types";
 
-const CONFIG: Record<
-  ScanFeedback["kind"],
-  { bg: string; fg: string; Icon: typeof CheckCircle2 }
-> = {
-  success: { bg: colors.success, fg: colors.white, Icon: CheckCircle2 },
-  duplicate: { bg: colors.warning, fg: colors.white, Icon: TriangleAlert },
-  "not-found": { bg: colors.danger, fg: colors.white, Icon: ScanLine },
+const CONFIG: Record<ScanOutcome["kind"], { bg: string; fg: string; Icon: typeof CheckCircle2 }> = {
+  valid: { bg: colors.success, fg: colors.white, Icon: CheckCircle2 },
+  invalid: { bg: colors.danger, fg: colors.white, Icon: XCircle },
 };
 
-function messageFor(feedback: ScanFeedback): { title: string; subtitle: string } {
-  switch (feedback.kind) {
-    case "success":
-      return { title: `Asistencia registrada`, subtitle: `${feedback.name} · ${feedback.time}` };
-    case "duplicate":
-      return { title: `Ya estaba registrado`, subtitle: `${feedback.name} · marcado a las ${feedback.time}` };
-    case "not-found":
-      return { title: "QR no reconocido", subtitle: "Este código no corresponde a ningún estudiante" };
+function messageFor(outcome: ScanOutcome): { title: string; subtitle: string } {
+  switch (outcome.kind) {
+    case "valid":
+      return { title: "QR reconocido", subtitle: "Completá tus datos para continuar" };
+    case "invalid":
+      return { title: "QR no reconocido", subtitle: "Pedile a tu profesora el código de esta clase" };
   }
 }
 
-export function FeedbackBanner({ feedback }: { feedback: ScanFeedback }) {
+export function FeedbackBanner({ outcome }: { outcome: ScanOutcome }) {
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -35,10 +29,10 @@ export function FeedbackBanner({ feedback }: { feedback: ScanFeedback }) {
       speed: 16,
       bounciness: 8,
     }).start();
-  }, [feedback, progress]);
+  }, [outcome, progress]);
 
-  const { bg, fg, Icon } = CONFIG[feedback.kind];
-  const { title, subtitle } = messageFor(feedback);
+  const { bg, fg, Icon } = CONFIG[outcome.kind];
+  const { title, subtitle } = messageFor(outcome);
 
   const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [24, 0] });
 

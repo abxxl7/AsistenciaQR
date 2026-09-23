@@ -1,15 +1,8 @@
-export type Student = {
-  id: string;
-  name: string;
-};
-
 export type AttendanceRecord = {
-  studentId: string;
   name: string;
+  cedula: string;
   timestamp: string; // ISO 8601
+  sessionId: string; // valor codificado en el QR de la profesora
 };
 
-export type ScanFeedback =
-  | { kind: "success"; name: string; time: string }
-  | { kind: "duplicate"; name: string; time: string }
-  | { kind: "not-found"; code: string };
+export type ScanOutcome = { kind: "valid"; sessionId: string } | { kind: "invalid" };

@@ -9,7 +9,10 @@ export default function RootLayout() {
       <AttendanceProvider>
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="index" />
+          <Stack.Screen name="scanner" />
+          <Stack.Screen name="formulario" />
+          <Stack.Screen name="confirmacion" options={{ gestureEnabled: false }} />
         </Stack>
       </AttendanceProvider>
     </SafeAreaProvider>

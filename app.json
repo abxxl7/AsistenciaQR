@@ -10,7 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "La app necesita acceso a la cámara para escanear el código QR del carnet del estudiante."
+        "NSCameraUsageDescription": "La app necesita acceso a la cámara para escanear el código QR que muestra tu profesora."
       }
     },
     "android": {
@@ -28,11 +28,10 @@
     },
     "plugins": [
       "expo-router",
-      "expo-sharing",
       [
         "expo-camera",
         {
-          "cameraPermission": "La app necesita acceso a la cámara para escanear el código QR del carnet del estudiante."
+          "cameraPermission": "La app necesita acceso a la cámara para escanear el código QR que muestra tu profesora."
         }
       ]
     ]

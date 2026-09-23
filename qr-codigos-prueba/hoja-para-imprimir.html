@@ -6,12 +6,12 @@
 <style>
   body { font-family: system-ui, sans-serif; padding: 24px; background: #fff; color: #14171F; }
   h1 { font-size: 20px; margin-bottom: 4px; }
-  p.sub { color: #5B6472; margin-top: 0; margin-bottom: 24px; font-size: 14px; }
-  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .card { border: 1px solid #E3DFD3; border-radius: 12px; padding: 12px; text-align: center; }
+  p.sub { color: #5B6472; margin-top: 0; margin-bottom: 24px; font-size: 14px; max-width: 560px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 640px; }
+  .card { border: 1px solid #E3DFD3; border-radius: 12px; padding: 16px; text-align: center; }
   .card img { width: 100%; height: auto; }
-  .name { font-weight: 600; margin-top: 8px; font-size: 13px; }
-  .id { color: #5B6472; font-size: 12px; }
+  .name { font-weight: 600; margin-top: 10px; font-size: 14px; }
+  .value { color: #5B6472; font-size: 12px; margin-top: 2px; }
   @media print {
     .card { break-inside: avoid; }
   }
@@ -19,19 +19,22 @@
 </head>
 <body>
   <h1>Códigos QR de prueba — PoC Asistencia</h1>
-  <p class="sub">Carnets simulados para probar el escáner. Cada QR codifica el <code>id</code> del estudiante mock.</p>
+  <p class="sub">
+    <strong>qr-sesion-profesora.png</strong> es el único QR que muestra la profesora en clase
+    (todos los alumnos escanean el mismo). <strong>qr-invalido.png</strong> es un código que no
+    corresponde a esta clase, para probar el mensaje de error "QR no reconocido".
+  </p>
   <div class="grid">
-    <div class="card"><img src="est-001.png" alt="est-001" /><div class="name">Ana Pérez</div><div class="id">est-001</div></div>
-    <div class="card"><img src="est-002.png" alt="est-002" /><div class="name">Diego Ramírez</div><div class="id">est-002</div></div>
-    <div class="card"><img src="est-003.png" alt="est-003" /><div class="name">Camila Torres</div><div class="id">est-003</div></div>
-    <div class="card"><img src="est-004.png" alt="est-004" /><div class="name">Mateo Fernández</div><div class="id">est-004</div></div>
-    <div class="card"><img src="est-005.png" alt="est-005" /><div class="name">Valentina Gómez</div><div class="id">est-005</div></div>
-    <div class="card"><img src="est-006.png" alt="est-006" /><div class="name">Santiago López</div><div class="id">est-006</div></div>
-    <div class="card"><img src="est-007.png" alt="est-007" /><div class="name">Sofía Martínez</div><div class="id">est-007</div></div>
-    <div class="card"><img src="est-008.png" alt="est-008" /><div class="name">Nicolás Rodríguez</div><div class="id">est-008</div></div>
-    <div class="card"><img src="est-009.png" alt="est-009" /><div class="name">Julieta Sánchez</div><div class="id">est-009</div></div>
-    <div class="card"><img src="est-010.png" alt="est-010" /><div class="name">Tomás Herrera</div><div class="id">est-010</div></div>
-    <div class="card"><img src="invalido-est-999.png" alt="est-999" /><div class="name">⚠️ No existe (para probar error)</div><div class="id">est-999</div></div>
+    <div class="card">
+      <img src="qr-sesion-profesora.png" alt="QR de la sesión" />
+      <div class="name">QR de la profesora (válido)</div>
+      <div class="value">TE-2026-clase1</div>
+    </div>
+    <div class="card">
+      <img src="qr-invalido.png" alt="QR inválido" />
+      <div class="name">QR de otra clase (para probar el error)</div>
+      <div class="value">codigo-de-otra-clase</div>
+    </div>
   </div>
 </body>
 </html>

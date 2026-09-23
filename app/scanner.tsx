@@ -2,67 +2,65 @@ import React, { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
+import { router, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CameraOff, ScanLine, Users } from "lucide-react-native";
+import { CameraOff, ScanLine } from "lucide-react-native";
 
 import { ScanOverlay } from "@/components/ScanOverlay";
 import { FeedbackBanner } from "@/components/FeedbackBanner";
 import { useAttendance } from "@/lib/AttendanceContext";
+import { SESSION_QR_VALUE } from "@/lib/session";
 import { colors, radius, spacing, typography } from "@/lib/theme";
-import type { ScanFeedback } from "@/lib/types";
+import type { ScanOutcome } from "@/lib/types";
 
-const RESET_DELAY_MS = 2200;
-const SAME_CODE_COOLDOWN_MS = 4000;
-
-const ACCENT_BY_KIND: Record<ScanFeedback["kind"], string> = {
-  success: colors.success,
-  duplicate: colors.warning,
-  "not-found": colors.danger,
-};
+const VALID_HOLD_MS = 650;
+const INVALID_COOLDOWN_MS = 2200;
 
 export default function ScannerScreen() {
   const insets = useSafeAreaInsets();
-  const { records, registerScan } = useAttendance();
+  const { record } = useAttendance();
   const [permission, requestPermission] = useCameraPermissions();
-  const [feedback, setFeedback] = useState<ScanFeedback | null>(null);
+  const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
 
   const lockedRef = useRef(false);
-  const lastCodeRef = useRef<{ code: string; at: number } | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleBarcodeScanned = useCallback(
-    async (scan: BarcodeScanningResult) => {
-      const code = scan.data;
-      const now = Date.now();
-
-      if (lockedRef.current) return;
-      if (lastCodeRef.current?.code === code && now - lastCodeRef.current.at < SAME_CODE_COOLDOWN_MS) {
-        return;
+  // Si este celular ya tiene una asistencia registrada, no dejamos volver a escanear.
+  useFocusEffect(
+    useCallback(() => {
+      if (record) {
+        router.replace("/confirmacion");
       }
-
-      lockedRef.current = true;
-      lastCodeRef.current = { code, at: now };
-
-      const scanResult = await registerScan(code);
-      setFeedback(scanResult);
-
-      Haptics.notificationAsync(
-        scanResult.kind === "success"
-          ? Haptics.NotificationFeedbackType.Success
-          : scanResult.kind === "duplicate"
-            ? Haptics.NotificationFeedbackType.Warning
-            : Haptics.NotificationFeedbackType.Error
-      ).catch(() => {});
-
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        setFeedback(null);
-        lockedRef.current = false;
-      }, RESET_DELAY_MS);
-    },
-    [registerScan]
+    }, [record])
   );
+
+  const handleBarcodeScanned = useCallback((scan: BarcodeScanningResult) => {
+    if (lockedRef.current) return;
+    lockedRef.current = true;
+
+    const code = scan.data;
+    const isValid = code === SESSION_QR_VALUE;
+
+    if (isValid) {
+      setOutcome({ kind: "valid", sessionId: code });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      timeoutRef.current = setTimeout(() => {
+        router.push({ pathname: "/formulario", params: { sessionId: code } });
+      }, VALID_HOLD_MS);
+    } else {
+      setOutcome({ kind: "invalid" });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+      timeoutRef.current = setTimeout(() => {
+        setOutcome(null);
+        lockedRef.current = false;
+      }, INVALID_COOLDOWN_MS);
+    }
+  }, []);
+
+  if (record) {
+    return <View style={styles.loadingRoot} />;
+  }
 
   if (!permission) {
     return <View style={styles.loadingRoot} />;
@@ -77,7 +75,7 @@ export default function ScannerScreen() {
         </View>
         <Text style={styles.permissionTitle}>Necesitamos la cámara</Text>
         <Text style={styles.permissionBody}>
-          Para escanear el QR del carnet de cada estudiante y registrar su asistencia, la app
+          Para escanear el código QR que muestra tu profesora y registrar tu asistencia, la app
           necesita acceso a la cámara del dispositivo.
         </Text>
         <Pressable style={styles.permissionButton} onPress={requestPermission}>
@@ -103,28 +101,18 @@ export default function ScannerScreen() {
       />
 
       <ScanOverlay
-        hint={
-          feedback
-            ? " "
-            : "Apuntá la cámara al código QR del carnet"
-        }
-        accentColor={feedback ? ACCENT_BY_KIND[feedback.kind] : colors.success}
+        hint={outcome ? " " : "Apuntá la cámara al QR que muestra tu profesora"}
+        accentColor={outcome?.kind === "invalid" ? colors.danger : colors.success}
       />
 
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerTitleRow}>
-          <ScanLine color={colors.white} size={20} strokeWidth={2.4} />
-          <Text style={styles.headerTitle}>Escanear asistencia</Text>
-        </View>
-        <View style={styles.counterPill}>
-          <Users color={colors.white} size={14} strokeWidth={2.4} />
-          <Text style={styles.counterText}>{records.length}</Text>
-        </View>
+        <ScanLine color={colors.white} size={20} strokeWidth={2.4} />
+        <Text style={styles.headerTitle}>Escanear código de clase</Text>
       </View>
 
-      {feedback && (
+      {outcome && (
         <View style={[styles.feedbackWrap, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <FeedbackBanner feedback={feedback} />
+          <FeedbackBanner outcome={outcome} />
         </View>
       )}
     </View>
@@ -149,28 +137,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: spacing.sm,
   },
   headerTitle: {
     ...typography.subtitle,
-    color: colors.white,
-  },
-  counterPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(255,255,255,0.16)",
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  counterText: {
-    ...typography.bodyMedium,
     color: colors.white,
   },
   feedbackWrap: {

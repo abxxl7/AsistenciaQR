@@ -1,30 +1,23 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AttendanceRecord } from "./types";
 
-const STORAGE_KEY = "asistencia-qr:records:v1";
+// Que esta clave exista o no ES el flag de "ya registrado" en este dispositivo.
+const STORAGE_KEY = "attendance_record";
 
-export async function getRecords(): Promise<AttendanceRecord[]> {
+export async function getRecord(): Promise<AttendanceRecord | null> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
+  if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return JSON.parse(raw) as AttendanceRecord;
   } catch {
-    return [];
+    return null;
   }
 }
 
-export async function saveRecords(records: AttendanceRecord[]): Promise<void> {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+export async function saveRecord(record: AttendanceRecord): Promise<void> {
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(record));
 }
 
-export async function addRecord(record: AttendanceRecord): Promise<AttendanceRecord[]> {
-  const current = await getRecords();
-  const next = [...current, record];
-  await saveRecords(next);
-  return next;
-}
-
-export async function clearRecords(): Promise<void> {
+export async function clearRecord(): Promise<void> {
   await AsyncStorage.removeItem(STORAGE_KEY);
 }
