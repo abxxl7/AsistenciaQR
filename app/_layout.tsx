@@ -13,6 +13,7 @@ export default function RootLayout() {
           <Stack.Screen name="scanner" />
           <Stack.Screen name="formulario" />
           <Stack.Screen name="confirmacion" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="profesora" />
         </Stack>
       </AttendanceProvider>
     </SafeAreaProvider>

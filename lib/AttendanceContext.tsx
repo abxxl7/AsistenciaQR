@@ -6,6 +6,7 @@ type ConfirmInput = {
   name: string;
   cedula: string;
   sessionId: string;
+  timestamp?: string;
 };
 
 type AttendanceContextValue = {
@@ -33,7 +34,7 @@ export function AttendanceProvider({ children }: { children: React.ReactNode }) 
       name: input.name.trim(),
       cedula: input.cedula.trim(),
       sessionId: input.sessionId,
-      timestamp: new Date().toISOString(),
+      timestamp: input.timestamp ?? new Date().toISOString(),
     };
     await storage.saveRecord(newRecord);
     setRecord(newRecord);

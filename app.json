@@ -21,7 +21,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": ["CAMERA"]
+      "permissions": [
+        "CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,7 +35,8 @@
         {
           "cameraPermission": "La app necesita acceso a la cámara para escanear el código QR que muestra tu profesora."
         }
-      ]
+      ],
+      "expo-sharing"
     ]
   }
 }

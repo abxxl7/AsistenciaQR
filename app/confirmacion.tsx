@@ -92,6 +92,9 @@ export default function ConfirmacionScreen() {
           <RotateCcw color={colors.inkMuted} size={14} strokeWidth={2.3} />
           <Text style={styles.resetText}>Borrar mi registro y volver a escanear</Text>
         </Pressable>
+        <Pressable style={styles.profesoraLink} onPress={() => router.push("/profesora")} hitSlop={8}>
+          <Text style={styles.profesoraLinkText}>¿Sos la profesora?</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -179,6 +182,14 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+  },
+  profesoraLink: {
+    marginTop: spacing.md,
+  },
+  profesoraLinkText: {
+    ...typography.caption,
+    color: colors.inkMuted,
+    textDecorationLine: "underline",
   },
   resetText: {
     ...typography.caption,

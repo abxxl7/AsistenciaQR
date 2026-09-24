@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,10 +11,30 @@ import {
 } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { collection, doc, setDoc, type DocumentReference } from "firebase/firestore";
 import { IdCard, User } from "lucide-react-native";
 
 import { useAttendance } from "@/lib/AttendanceContext";
+import { db } from "@/lib/firebase";
 import { colors, radius, spacing, typography } from "@/lib/theme";
+
+const FIRESTORE_TIMEOUT_MS = 10000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
 
 export default function FormularioScreen() {
   const insets = useSafeAreaInsets();
@@ -25,6 +46,8 @@ export default function FormularioScreen() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [cedulaError, setCedulaError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // ID del documento y timestamp se generan en el primer intento y se reutilizan en los reintentos.
+  const attemptRef = useRef<{ docRef: DocumentReference; timestamp: string } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -51,8 +74,22 @@ export default function FormularioScreen() {
 
     setSubmitting(true);
     try {
-      await confirmAttendance({ name: trimmedName, cedula: digitsOnly, sessionId });
+      attemptRef.current ??= {
+        docRef: doc(collection(db, "registros")),
+        timestamp: new Date().toISOString(),
+      };
+      const { docRef, timestamp } = attemptRef.current;
+
+      // Primero Firestore: si falla, no se guarda nada local y el alumno puede reintentar.
+      const data = { sessionId, name: trimmedName, cedula: digitsOnly, timestamp };
+      await withTimeout(setDoc(docRef, data), FIRESTORE_TIMEOUT_MS);
+      await confirmAttendance(data);
       router.replace("/confirmacion");
+    } catch {
+      Alert.alert(
+        "No se pudo registrar tu asistencia",
+        "Revisá tu conexión a internet e intentá de nuevo."
+      );
     } finally {
       setSubmitting(false);
     }

@@ -86,6 +86,13 @@ export default function ScannerScreen() {
             Si ya la rechazaste antes, activala manualmente desde los ajustes del sistema.
           </Text>
         )}
+        <Pressable
+          style={styles.permissionProfesoraLink}
+          onPress={() => router.push("/profesora")}
+          hitSlop={8}
+        >
+          <Text style={styles.profesoraLink}>¿Sos la profesora?</Text>
+        </Pressable>
       </View>
     );
   }
@@ -110,9 +117,15 @@ export default function ScannerScreen() {
         <Text style={styles.headerTitle}>Escanear código de clase</Text>
       </View>
 
-      {outcome && (
+      {outcome ? (
         <View style={[styles.feedbackWrap, { paddingBottom: insets.bottom + spacing.lg }]}>
           <FeedbackBanner outcome={outcome} />
+        </View>
+      ) : (
+        <View style={[styles.feedbackWrap, styles.linkWrap, { paddingBottom: insets.bottom + spacing.lg }]}>
+          <Pressable onPress={() => router.push("/profesora")} hitSlop={8}>
+            <Text style={[styles.profesoraLink, styles.profesoraLinkOnCamera]}>¿Sos la profesora?</Text>
+          </Pressable>
         </View>
       )}
     </View>
@@ -148,6 +161,21 @@ const styles = StyleSheet.create({
     left: spacing.base,
     right: spacing.base,
     bottom: 0,
+  },
+  linkWrap: {
+    alignItems: "center",
+  },
+  profesoraLink: {
+    ...typography.caption,
+    color: colors.inkMuted,
+    textDecorationLine: "underline",
+  },
+  profesoraLinkOnCamera: {
+    color: colors.white,
+    opacity: 0.85,
+  },
+  permissionProfesoraLink: {
+    marginTop: spacing.xl,
   },
   permissionRoot: {
     flex: 1,
